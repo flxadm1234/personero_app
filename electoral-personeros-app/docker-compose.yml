@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: electoral_personeros_bd
+    restart: always
+    environment:
+      POSTGRES_DB: electoral_personeros
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Admin123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_personeros_data:/var/lib/postgresql/data
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./backend/database/seeds.sql:/docker-entrypoint-initdb.d/02_seeds.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d electoral_personeros"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: electoral_personeros_backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: Admin123!
+      DB_NAME: electoral_personeros
+      SECRET_KEY: electoral_personeros_secret_key_2026_loreto_peru_muy_segura_Docker_987654321
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+    ports:
+      - "8000:8000"
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  pg_personeros_data:
+    name: pg_personeros_data

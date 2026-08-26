@@ -1,0 +1,44 @@
+# ========== BACKEND / PYTHON ==========
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.env
+.venv/
+venv/
+env/
+.python-version
+Pipfile.lock
+poetry.lock
+
+# ========== DATABASE ==========
+*.dump
+*.sql.bak
+
+# ========== ANDROID ==========
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.idea/
+android/captures/
+*.apk
+*.aab
+android/app/release/
+android/app/debug/
+android/app/src/main/res/values/strings.xml.bak
+*.iml
+
+# ========== GENERAL ==========
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+.vscode/
+.idea/
+node_modules/
+*.swp

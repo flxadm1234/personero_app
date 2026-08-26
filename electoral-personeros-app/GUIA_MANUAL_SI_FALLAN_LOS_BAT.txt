@@ -1,0 +1,77 @@
+===================================================================
+ GUIA MANUAL (SI LOS SCRIPTS .bat SIGUEN FALLANDO)
+===================================================================
+
+Felix, si los .bat no funcionan por algún permiso especial de Windows,
+haz ESTOS 6 PASOS MANUALMENTE. Tardarás 4 minutos.
+
+===================================================================
+ PASO 0: ABRIR Símbolo del sistema COMO ADMINISTRADOR
+===================================================================
+- Menú Inicio → escribe "cmd" → clic derecho → "Ejecutar como administrador"
+- Copia y pega cada bloque, presiona Enter.
+- Cambia a la carpeta del proyecto:
+    cd /d "f:\SISTEMA DE PERSONERO\electoral-personeros-app"
+
+===================================================================
+ PASO 1: REPARAR PostgreSQL (si está roto el pg_hba.conf)
+===================================================================
+SALTA ESTE PASO SI POSTGRESQL YA FUNCIONA.
+- Abre el Bloc de notas COMO ADMINISTRADOR (importante):
+    - Inicio → "notepad" → clic derecho → Ejecutar como admin
+    - Archivo → Abrir → navega a:
+      C:\Program Files\PostgreSQL\18\data\pg_hba.conf.backup_personeros
+    - (si no lo ves, abajo cambia "Documentos de texto (*.txt)" → "Todos los archivos")
+    - Archivo → Guardar como → navega a:
+      C:\Program Files\PostgreSQL\18\data\
+    - Nombre: pg_hba.conf  →  Guardar  →  SÍ, sobrescribir.
+- Ahora REINICIA el servicio PostgreSQL (cmd admin):
+    net stop postgresql-x64-18
+    net start postgresql-x64-18
+
+===================================================================
+ PASO 2: Habilitar temporalmente autenticación trust
+===================================================================
+- Abrir NOTEPAD como ADMINISTRADOR
+- Abrir archivo: C:\Program Files\PostgreSQL\18\data\pg_hba.conf
+- Busca (Ctrl+B) "scram-sha-256" → CAMBIA TODAS las apariciones por "trust"
+- Guardar (Ctrl+G). NO CAMBIES NADA MÁS.
+- Reiniciar servicio:
+    net stop postgresql-x64-18
+    net start postgresql-x64-18
+
+===================================================================
+ PASO 3: Establecer contraseña y crear BD
+===================================================================
+Copia/pega en el cmd admin:
+    set PATH=%PATH%;C:\Program Files\PostgreSQL\18\bin
+    set PGPASSWORD=
+    psql -U postgres -h 127.0.0.1 -c "ALTER USER postgres WITH PASSWORD 'Admin123!';"
+    psql -U postgres -h 127.0.0.1 -c "CREATE DATABASE electoral_personeros;"
+
+===================================================================
+ PASO 4: Instalar esquema + datos iniciales
+===================================================================
+    set PGPASSWORD=Admin123!
+    psql -U postgres -h 127.0.0.1 -d electoral_personeros -f "backend\database\schema.sql"
+    psql -U postgres -h 127.0.0.1 -d electoral_personeros -f "backend\database\seeds.sql"
+
+===================================================================
+ PASO 5: Restaurar autenticación segura scram-sha-256
+===================================================================
+- Notepad admin → C:\Program Files\PostgreSQL\18\data\pg_hba.conf
+- Busca: "trust"   →   Reemplaza TODOS por "scram-sha-256"
+- Guardar.
+- Reiniciar servicio:
+    net stop postgresql-x64-18
+    net start postgresql-x64-18
+
+===================================================================
+ PASO 6: Probar conexión
+===================================================================
+    set PGPASSWORD=Admin123!
+    psql -U postgres -h 127.0.0.1 -d electoral_personeros -c "\dt"
+
+Si muestra las 5 tablas (persona, usuarios, centro_votacion, mesa, personeros_users) → ¡TODO OK!
+Ahora doble clic en PASO_2_INSTALAR_Y_EJECUTAR_BACKEND.bat
+===================================================================
